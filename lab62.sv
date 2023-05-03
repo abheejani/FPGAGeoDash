@@ -61,6 +61,8 @@ module lab62 (
 logic Reset_h, vssig, blank, sync, VGA_Clk;
 logic rst; 
 
+//logic [9:0] randtest1, randtest2, randtest3;
+
 //assign Reset_h = rst;
 
  
@@ -79,12 +81,19 @@ logic rst;
 	
 	//new spikes 
 	logic [64:0] drawxsig, drawysig, ballxsig, ballysig, ballsizesig, 
-					 spikexsig, spikeysig, spikesizesig; 
+					 spikexsig, spikeysig, spikesizesig, 
+					 finxsig, finysig, finsizesig; 
 	logic [7:0] Red, Blue, Green;
 	logic [7:0] keycode;
 	
 	// background
 	logic[64:0] bgxsig, bgysig, bgsize; 
+	
+	// background2
+	logic[64:0] bg2xsig, bg2ysig, bg2size; 
+	
+	// background3
+	logic[64:0] bg3xsig, bg3ysig, by3size;
 	
 	// new platforms
 	logic[64:0] pfxsig, pfysig, pfsizesig;
@@ -111,10 +120,10 @@ logic rst;
 	assign ARDUINO_IO[6] = 1'b1;
 	
 	//HEX drivers to convert numbers to HEX output
-	HexDriver hex_driver4 (hex_num_4, HEX4[6:0]);
+	HexDriver hex_driver4 (hex_num_3, HEX4[6:0]);
 	assign HEX4[7] = 1'b1;
 	
-	HexDriver hex_driver3 (hex_num_3, HEX3[6:0]);
+	HexDriver hex_driver3 (hex_num_2, HEX3[6:0]);
 	assign HEX3[7] = 1'b1;
 	
 	HexDriver hex_driver1 (hex_num_1, HEX1[6:0]);
@@ -185,7 +194,7 @@ vga_controller abhee(.Clk(MAX10_CLK1_50), .Reset(Reset_h), .hs(VGA_HS), .vs(VGA_
 ///changing reset to Reset_h
 ball azim(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), //.jumpmotion(jumpmotionsig), 
 //.(jump_in), .jump_ready(jump_ready),
-.BallX(ballxsig), .BallY(ballysig), .BallS(ballsizesig), .Ball_X_Center(100), .Ball_Y_Center(400), .ball_floor(floor)
+.BallX(ballxsig), .BallY(ballysig), .BallS(ballsizesig), .Ball_X_Center(100), .Ball_Y_Center(400), .ball_floor(floor), .pause(pausesig)
 //.jump_motion(jump_out)
 );
 
@@ -194,25 +203,40 @@ logic[9:0] floor;
 
  
 logic[7:0] jumpmotionsig;
-spike akshat(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), .spikeX(spikexsig), .spikeY(spikeysig), .spikeS(spikesizesig), .spike_X_Center(350), .spike_Y_Center(400));
+spike akshat(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), .spikeX(spikexsig), .spikeY(spikeysig), .spikeS(spikesizesig), .spike_X_Center(350), .spike_Y_Center(400), .pause(pausesig), .gameplay(gameplaysig));
 
-bg Arjun(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), .bg_X_Center(250), .bg_Y_Center(250),  .bgX(bgxsig), .bgY(bgysig), .bgS(bgsize));
+fin shivam(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), .finX(finxsig), .finY(finysig), .finS(finsizesig), .fin_X_Center(350), .fin_Y_Center(400), .pause(pausesig), .gameplay(gameplaysig));
 
-platform ali(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), .pfX(pfxsig), .pfY(pfysig), .pfS(pfsizesig), .pf_X_Center(350), .pf_Y_Center(400));
+bg Arjun(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), .bg_X_Center(250), .bg_Y_Center(250),  .bgX(bgxsig), .bgY(bgysig), .bgS(bgsize), .pause(pausesig), .gameplay(gameplaysig));
+
+bg2 Pedro(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), .bg2_X_Center(250), .bg2_Y_Center(250),  .bg2X(bg2xsig), .bg2Y(bg2ysig), .bg2S(bg2size), .pause(pausesig), .gameplay(gameplaysig));
+
+bg3 Advaith(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), .bg3_X_Center(250), .bg3_Y_Center(250),  .bg3X(bg3xsig), .bg3Y(bg3ysig), .bg3S(bg3size), .pause(pausesig), .gameplay(gameplaysig));
+
+platform ali(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), .pfX(pfxsig), .pfY(pfysig), .pfS(pfsizesig), .pf_X_Center(350), .pf_Y_Center(400), .pause(pausesig), .gameplay(gameplaysig));
 
 color_mapper jason(.spriteX(ballxsig), .spriteY(ballysig), .DrawX(drawxsig),
  .DrawY(drawysig), .sprite_size(ballsizesig), 
- .spikeX(spikexsig), .spikeY(spikeysig), .spike_size(spikesizesig), .bgX(bgxsig), .bgY(bgysig), .bg_size(bgsize),
+ .spikeX(spikexsig), .spikeY(spikeysig), .spike_size(spikesizesig),
+ .finX(finxsig), .finY(finysig), .fin_size(finsizesig),
+ .bgX(bgxsig), .bgY(bgysig), .bg_size(bgsize),
+ .bg2X(bg2xsig), .bg2Y(bg2ysig), .bg2_size(bg2size),
+ .bg3X(bg3xsig), .bg3Y(bg3ysig), .bg3_size(bg3size), 
  .pfX(pfxsig), .pfY(pfysig), .pf_size(pfsizesig), 
- .Red(Red), .Green(Green), .Blue(Blue), .vga_clk(VGA_Clk), .blank(blank), .hit(hit), .cur_floor(floor), .keycode(keycode), .screen(screensig));
+ .Red(Red), .Green(Green), .Blue(Blue), .vga_clk(VGA_Clk), .blank(blank), .hit(hit), .finish(finish), .cur_floor(floor), .keycode(keycode), .screen(screensig) //.show_title(showtitle) 
+ /*.randtest1, .randtest2, .randtest3*/);
 	
 logic hit; 
+logic finish;
 logic int_reset; 
+logic showtitle;
 
- ISDU Adnan( .Clk(VGA_VS), .hit(hit), .internal_reset(int_reset), .keycode(keycode), .screen(screensig)
+ ISDU Adnan( .Clk(VGA_VS), .hit(hit), .finish(finish), .internal_reset(int_reset), .keycode(keycode), .screen(screensig), .pause(pausesig), .gameplay(gameplaysig), .show_title(showtitle)
 // .jumpmotion(jumpmotionsig), .keycode(keycode)
  );
- logic screensig; 
+logic screensig;
+logic pausesig; 
+logic gameplaysig; 
 
  //logic jump_in, jump_ready; 
 // logic[9:0] jump_out; 

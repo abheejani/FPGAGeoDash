@@ -1,9 +1,24 @@
 
 State Machine - |lab62|ISDU:Adnan|State
-Name State.S_0 State.S_02 State.S_01 
-State.S_0 0 0 0 
-State.S_01 1 0 1 
-State.S_02 1 1 0 
+Name State.S_P State.S_02 State.S_01 State.S_0 State.S_04 
+State.S_0 0 0 0 0 0 
+State.S_01 0 0 1 1 0 
+State.S_02 0 1 0 1 0 
+State.S_P 1 0 0 1 0 
+State.S_04 0 0 0 1 1 
+
+State Machine - |lab62|color_mapper:jason|backgroundType
+Name backgroundType.0000 backgroundType.0010 backgroundType.0001 
+backgroundType.0000 0 0 0 
+backgroundType.0001 1 0 1 
+backgroundType.0010 1 1 0 
+
+State Machine - |lab62|color_mapper:jason|flag
+Name flag.0011 flag.0010 flag.0001 flag.0000 
+flag.0000 0 0 0 0 
+flag.0001 0 0 1 1 
+flag.0010 0 1 0 1 
+flag.0011 1 0 0 1 
 
 State Machine - |lab62|lab62_soc:u0|lab62_soc_sdram:sdram|m_next
 Name m_next.010000000 m_next.000010000 m_next.000001000 m_next.000000001 

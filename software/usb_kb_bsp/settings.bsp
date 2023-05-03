@@ -2,8 +2,8 @@
 <sch:Settings xmlns:sch="http://www.altera.com/embeddedsw/bsp/schema">
         <BspType>hal</BspType>
         <BspVersion>default</BspVersion>
-        <BspGeneratedTimeStamp>Apr 26, 2023 11:34:03 AM</BspGeneratedTimeStamp>
-        <BspGeneratedUnixTimeStamp>1682526843753</BspGeneratedUnixTimeStamp>
+        <BspGeneratedTimeStamp>May 2, 2023 3:35:50 PM</BspGeneratedTimeStamp>
+        <BspGeneratedUnixTimeStamp>1683059750692</BspGeneratedUnixTimeStamp>
         <BspGeneratedLocation>C:\Users\ThinkPad\Desktop\the_cooler_lab6_1_aka_the_final_project\software\usb_kb_bsp</BspGeneratedLocation>
         <BspSettingsFile>settings.bsp</BspSettingsFile>
         <SopcDesignFile>..\..\lab62_soc.sopcinfo</SopcDesignFile>

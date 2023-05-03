@@ -1,12 +1,13 @@
-module ISDU (   input logic Clk, hit,//if we've collided, comes from color mapper
+module ISDU (   input logic Clk, hit, finish,//if we've collided, comes from color mapper
 					input [7:0] keycode, 
-//					output [7:0] jumpmotion,
+//				output [7:0] jumpmotion,
 //				input logic[2:0] Opcode,
 				output internal_reset, //resets in ball file
-				output screen
+				output screen,
+				output pause, 
+				output gameplay, 
+				output show_title
 				);
-
-				
 				
 //collision output inputted into ball file to determine reset
 //collision determined by color mapper
@@ -15,7 +16,8 @@ module ISDU (   input logic Clk, hit,//if we've collided, comes from color mappe
 						//PauseIR2,
 						S_0,	//menu
 						S_01, // Game state
-						S_02 // Reset state
+						S_02, // Reset state
+						S_P,	//pause state
 //						S_03,  // jump states 
 //						S_03_2,
 //						S_03_3,
@@ -23,6 +25,7 @@ module ISDU (   input logic Clk, hit,//if we've collided, comes from color mappe
 ////						S_03_5,
 ////						S_03_6, 
 //						S_03_7
+						S_04
 						} State, Next_state;
 		
 //reg[31:0] counter; 	
@@ -56,8 +59,15 @@ module ISDU (   input logic Clk, hit,//if we've collided, comes from color mappe
 			S_01 : 
 				if(hit)
 				Next_state = S_02;
+				else if(finish) // if game ends, go to the menu bosssssssssss
+				Next_state = S_04;
 //				else if(keycode == 8'h1A)//The only intimate affection I've had is with my pillow in the middle of the night
-//				Next_state = S_03; 
+//				Next_state = S_03;
+				else if(keycode == 8'h13)//p key causes pause
+					Next_state = S_P;
+				else if(keycode == 8'h10) begin //m key causes menu
+					Next_state = S_04;
+				end
 				else
 				Next_state = S_01; 
 			S_02 : 
@@ -67,6 +77,13 @@ module ISDU (   input logic Clk, hit,//if we've collided, comes from color mappe
 				Next_state = S_01;
 				else
 				Next_state = S_0;	
+			S_P : 
+				if(keycode == 8'h13)
+				Next_state = S_01;
+				else
+				Next_state = S_P;	
+			S_04 : 
+				Next_state = S_0;
 				
 //			S_03 : 
 //				Next_state = S_03_2;	// start jump state
@@ -84,8 +101,6 @@ module ISDU (   input logic Clk, hit,//if we've collided, comes from color mappe
 //				Next_state = S_01;   // regular play state 
 				
 			
-			
-		
 				
 //			S_32 : 
 //				case (Opcode)
@@ -117,14 +132,18 @@ module ISDU (   input logic Clk, hit,//if we've collided, comes from color mappe
 				begin
 					internal_reset = 1'b0; 
 					screen = 1'b0; 
-					
+					pause = 1'b0; 
+					gameplay = 1'b0; 
+					show_title = 1'b1;
 					end
 			S_01 : 
 				begin 
 				internal_reset = 1'b0;  
 				//jumpmotion = 0;
-					screen = 1'b1; 
-
+				screen = 1'b1;
+				pause = 1'b0;
+				gameplay = 1'b1; 
+				show_title = 1'b0;
 				end
 			S_02 : 
 				begin
@@ -132,9 +151,27 @@ module ISDU (   input logic Clk, hit,//if we've collided, comes from color mappe
 				internal_reset = 1'b1;
 				//jumpmotion = 0; 
 				screen = 1'b1; 
+				pause = 1'b0;
+				gameplay = 1'b0; 
+				show_title = 1'b0;
 				
 				end
-				
+			S_P  :
+				begin
+					internal_reset = 1'b0; 
+					screen = 1'b1; 
+					pause = 1'b1;
+					gameplay = 1'b0; 
+					show_title = 1'b0;
+					end
+			S_04  :
+				begin
+					internal_reset = 1'b1;
+					pause = 1'b0;
+					gameplay = 1'b0; 
+					screen = 1'b0;
+					show_title = 1'b1;
+				end
 //			S_03 : 
 //				begin 
 //				internal_reset = 1'b0;  
