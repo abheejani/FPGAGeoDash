@@ -98,6 +98,12 @@ logic rst;
 	// new platforms
 	logic[64:0] pfxsig, pfysig, pfsizesig;
 	
+	// new portal
+	logic[64:0] portalxsig, portalysig, portalsizesig;
+	
+	//deaths
+	logic[6:0] deaths;
+	
 //=======================================================
 //  Structural coding
 //=======================================================
@@ -120,16 +126,23 @@ logic rst;
 	assign ARDUINO_IO[6] = 1'b1;
 	
 	//HEX drivers to convert numbers to HEX output
-	HexDriver hex_driver4 (hex_num_3, HEX4[6:0]);
+	HexDriver hex_driver4 (deaths[3:0], HEX4[6:0]);
 	assign HEX4[7] = 1'b1;
 	
 	HexDriver hex_driver3 (hex_num_2, HEX3[6:0]);
 	assign HEX3[7] = 1'b1;
 	
-	HexDriver hex_driver1 (hex_num_1, HEX1[6:0]);
+	
+	int d;
+	reg [7:0] count;
+	
+	Death arnav(.Clk(VGA_VS), .hit(hit), .counter(count), .screen(screensig));
+	
+	
+	HexDriver hex_driver1 (count[7:4], HEX1[6:0]);
 	assign HEX1[7] = 1'b1;
 	
-	HexDriver hex_driver0 (hex_num_0, HEX0[6:0]);
+	HexDriver hex_driver0 (count[3:0], HEX0[6:0]);
 	assign HEX0[7] = 1'b1;
 	
 	//fill in the hundreds digit as well as the negative sign
@@ -194,7 +207,7 @@ vga_controller abhee(.Clk(MAX10_CLK1_50), .Reset(Reset_h), .hs(VGA_HS), .vs(VGA_
 ///changing reset to Reset_h
 ball azim(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), //.jumpmotion(jumpmotionsig), 
 //.(jump_in), .jump_ready(jump_ready),
-.BallX(ballxsig), .BallY(ballysig), .BallS(ballsizesig), .Ball_X_Center(100), .Ball_Y_Center(400), .ball_floor(floor), .pause(pausesig)
+.BallX(ballxsig), .BallY(ballysig), .BallS(ballsizesig), .Ball_X_Center(100), .Ball_Y_Center(400), .ball_floor(floor), .pause(pausesig), .portal_status(portal)
 //.jump_motion(jump_out)
 );
 
@@ -215,6 +228,8 @@ bg3 Advaith(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), .
 
 platform ali(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), .pfX(pfxsig), .pfY(pfysig), .pfS(pfsizesig), .pf_X_Center(350), .pf_Y_Center(400), .pause(pausesig), .gameplay(gameplaysig));
 
+portal aleena(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), .portalX(portalxsig), .portalY(portalysig), .portalS(portalsizesig), .portal_X_Center(350), .portal_Y_Center(400), .pause(pausesig), .gameplay(gameplaysig));
+
 color_mapper jason(.spriteX(ballxsig), .spriteY(ballysig), .DrawX(drawxsig),
  .DrawY(drawysig), .sprite_size(ballsizesig), 
  .spikeX(spikexsig), .spikeY(spikeysig), .spike_size(spikesizesig),
@@ -223,20 +238,24 @@ color_mapper jason(.spriteX(ballxsig), .spriteY(ballysig), .DrawX(drawxsig),
  .bg2X(bg2xsig), .bg2Y(bg2ysig), .bg2_size(bg2size),
  .bg3X(bg3xsig), .bg3Y(bg3ysig), .bg3_size(bg3size), 
  .pfX(pfxsig), .pfY(pfysig), .pf_size(pfsizesig), 
- .Red(Red), .Green(Green), .Blue(Blue), .vga_clk(VGA_Clk), .blank(blank), .hit(hit), .finish(finish), .cur_floor(floor), .keycode(keycode), .screen(screensig) //.show_title(showtitle) 
+ .portalX(portalxsig), .portalY(portalysig), .portal_size(portalsizesig),
+ .Red(Red), .Green(Green), .Blue(Blue), .vga_clk(VGA_Clk), .blank(blank), .hit(hit), .finish(finish), .cur_floor(floor), .portal(portal), .keycode(keycode), .screen(screensig), .deaths(count), .inc_deaths(inc_deaths) //.show_title(showtitle) 
  /*.randtest1, .randtest2, .randtest3*/);
 	
 logic hit; 
 logic finish;
 logic int_reset; 
 logic showtitle;
+logic portal;
 
- ISDU Adnan( .Clk(VGA_VS), .hit(hit), .finish(finish), .internal_reset(int_reset), .keycode(keycode), .screen(screensig), .pause(pausesig), .gameplay(gameplaysig), .show_title(showtitle)
+
+ ISDU Adnan( .Clk(VGA_VS), .hit(hit), .finish(finish), .internal_reset(int_reset), .keycode(keycode), .screen(screensig), .pause(pausesig), .gameplay(gameplaysig), .show_title(showtitle), .inc_deaths(inc_deaths)
 // .jumpmotion(jumpmotionsig), .keycode(keycode)
  );
 logic screensig;
 logic pausesig; 
 logic gameplaysig; 
+logic inc_deaths; 
 
  //logic jump_in, jump_ready; 
 // logic[9:0] jump_out; 

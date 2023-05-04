@@ -1,0 +1,8 @@
+module Death(input hit, input Clk, output[7:0] counter
+);
+
+always_ff @ (posedge Clk)begin
+	if(hit) begin
+		counter = coutner + 1;
+	end
+end 

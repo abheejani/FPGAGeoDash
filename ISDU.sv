@@ -6,7 +6,9 @@ module ISDU (   input logic Clk, hit, finish,//if we've collided, comes from col
 				output screen,
 				output pause, 
 				output gameplay, 
-				output show_title
+				output show_title, 
+				//output[7:0] deaths, 
+				output inc_deaths
 				);
 				
 //collision output inputted into ball file to determine reset
@@ -55,35 +57,49 @@ module ISDU (   input logic Clk, hit, finish,//if we've collided, comes from col
 		Next_state = State;
 	
 		// Assign next state
-		unique case (State)                      
-			S_01 : 
-				if(hit)
+		unique case (State)
+			
+			S_01 : begin
+				if(hit) begin
 				Next_state = S_02;
-				else if(finish) // if game ends, go to the menu bosssssssssss
+				end
+				else if(finish) begin // if game ends, go to the menu bosssssssssss
 				Next_state = S_04;
-//				else if(keycode == 8'h1A)//The only intimate affection I've had is with my pillow in the middle of the night
+		 
+				end
+			
+//				else if(keycode == 8'h1A)
 //				Next_state = S_03;
-				else if(keycode == 8'h13)//p key causes pause
+				else if(keycode == 8'h13) begin//p key causes pause
 					Next_state = S_P;
+					
+					end
 				else if(keycode == 8'h10) begin //m key causes menu
 					Next_state = S_04;
+		
 				end
-				else
+				else begin
 				Next_state = S_01; 
-			S_02 : 
+				end
+			end
+			S_02 : begin
 				Next_state = S_01;
-			S_0 : 
+			end
+			S_0 : begin
 				if(keycode == 8'h2c)
 				Next_state = S_01;
 				else
 				Next_state = S_0;	
-			S_P : 
+			end
+			S_P : begin
 				if(keycode == 8'h13)
 				Next_state = S_01;
 				else
 				Next_state = S_P;	
-			S_04 : 
+			end
+			S_04 : begin
 				Next_state = S_0;
+			end
 				
 //			S_03 : 
 //				Next_state = S_03_2;	// start jump state
@@ -127,7 +143,7 @@ module ISDU (   input logic Clk, hit, finish,//if we've collided, comes from col
 		endcase
 		
 		case (State) // what is happening in each of the states 
-			//Halted:; //LD_LED = 1'b1;
+			//deaths = 7'b0000000;
 			S_0  :
 				begin
 					internal_reset = 1'b0; 
@@ -135,6 +151,7 @@ module ISDU (   input logic Clk, hit, finish,//if we've collided, comes from col
 					pause = 1'b0; 
 					gameplay = 1'b0; 
 					show_title = 1'b1;
+					inc_deaths = 1'b0;
 					end
 			S_01 : 
 				begin 
@@ -144,6 +161,7 @@ module ISDU (   input logic Clk, hit, finish,//if we've collided, comes from col
 				pause = 1'b0;
 				gameplay = 1'b1; 
 				show_title = 1'b0;
+				inc_deaths = 1'b0;
 				end
 			S_02 : 
 				begin
@@ -154,7 +172,7 @@ module ISDU (   input logic Clk, hit, finish,//if we've collided, comes from col
 				pause = 1'b0;
 				gameplay = 1'b0; 
 				show_title = 1'b0;
-				
+				inc_deaths = 1'b1;
 				end
 			S_P  :
 				begin
@@ -163,6 +181,7 @@ module ISDU (   input logic Clk, hit, finish,//if we've collided, comes from col
 					pause = 1'b1;
 					gameplay = 1'b0; 
 					show_title = 1'b0;
+					inc_deaths = 1'b0;
 					end
 			S_04  :
 				begin
@@ -171,6 +190,7 @@ module ISDU (   input logic Clk, hit, finish,//if we've collided, comes from col
 					gameplay = 1'b0; 
 					screen = 1'b0;
 					show_title = 1'b1;
+					inc_deaths = 1'b0;
 				end
 //			S_03 : 
 //				begin 
@@ -211,6 +231,7 @@ module ISDU (   input logic Clk, hit, finish,//if we've collided, comes from col
 //				internal_reset = 1'b0;  
 //				jumpmotion = 0;
 //				end
+
 			default : ;
 		endcase
 	end 

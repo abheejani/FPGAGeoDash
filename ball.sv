@@ -13,18 +13,18 @@
 //-------------------------------------------------------------------------
 
 
-module  ball ( input Reset, frame_clk, // currently, Reset is the internal reset for when we collide. May need an FPGA rest down the line. 
-					input [7:0] keycode,
+module  ball ( input Reset, frame_clk, portal_status, // currently, Reset is the internal reset for when we collide. May need an FPGA rest down the line. 
+					input [7:0] keycode, 
 					//input logics replace params below
 					input[64:0] Ball_X_Center, Ball_Y_Center,
 					input [9:0] ball_floor,
 					input pause,
                output [64:0]  BallX, BallY, BallS);
+					
+	///////////////////// All this shit is for the regular game //////////////////
     
     logic [64:0] Ball_X_Pos, Ball_X_Motion, Ball_Y_Pos, Ball_Y_Motion, Ball_Size;
 	 
-    //parameter [9:0] Ball_X_Center=320;  // Center position on the X axis
-    //parameter [9:0] Ball_Y_Center=240;  // Center position on the Y axis
     parameter [9:0] Ball_X_Min=0;       // Leftmost point on the X axis
     parameter [9:0] Ball_X_Max=639;     // Rightmost point on the X axis
     logic [9:0] Ball_Y_Min=380;     // Topmost point on the Y axis
@@ -44,58 +44,110 @@ module  ball ( input Reset, frame_clk, // currently, Reset is the internal reset
 				Ball_Y_Pos <= Ball_Y_Max - Ball_Size; //Ball_Y_Center;
 				Ball_X_Pos <= Ball_X_Center;
         end
-		else if(pause == 1'b1) begin
+		else if(pause) begin
 				Ball_Y_Motion <= 10'd0; 
 				Ball_X_Motion <= 10'd0;
 				Ball_Y_Pos <= (Ball_Y_Pos + Ball_Y_Motion);  
 				Ball_X_Pos <= (Ball_X_Pos + Ball_X_Motion);
 		 end
 			
-        else 
-        begin 
-				 if ( (Ball_Y_Pos + Ball_Size) >= Ball_Y_Max - 1)begin  // Ball is at the bottom edge
-					if(keycode == 8'h1A)begin // W pressed
-						Ball_Y_Min <= Ball_Y_Pos - 100; 
-						Ball_Y_Motion <= -5;
-					end
-					else Ball_Y_Motion <= 0;
-				 end	  //(~ (Ball_Y_Step) + 1'b1);  // 2's complement.
-					  
-				 else if ( (Ball_Y_Pos - Ball_Size) <= Ball_Y_Min)  // Ball is at the top edge, BOUNCE!
-					  Ball_Y_Motion <= Ball_Y_Step;
-				else if(Ball_Y_Motion == 0 && Ball_Y_Pos + Ball_Size <= Ball_Y_Max -1) begin
-					Ball_Y_Motion <= 5;
-				end
-		
-					Ball_Y_Pos <= (Ball_Y_Pos + Ball_Y_Motion);  // Update ball position
-					Ball_X_Pos <= (Ball_X_Pos + Ball_X_Motion);
+        else begin // GAMEPLAY STATES STARTING HERE
+				if(portal_status == 1'b0) begin
+						 if ( (Ball_Y_Pos + Ball_Size) >= Ball_Y_Max - 1)begin  // Ball is at the bottom edge
+							if(keycode == 8'h1A)begin // W pressed
+								Ball_Y_Min <= Ball_Y_Pos - 100; 
+								Ball_Y_Motion <= -5;
+							end
+							else Ball_Y_Motion <= 0;
+						 end	  //(~ (Ball_Y_Step) + 1'b1);  // 2's complement.
+							  
+						 else if ( (Ball_Y_Pos - Ball_Size) <= Ball_Y_Min)  // Ball is at the top edge, BOUNCE!
+							  Ball_Y_Motion <= Ball_Y_Step;
+						else if(Ball_Y_Motion == 0 && Ball_Y_Pos + Ball_Size <= Ball_Y_Max -1) begin
+							Ball_Y_Motion <= 5;
+						end
 				
-				end
-				 
-
-			
-			
-	  /**************************************************************************************
-	    ATTENTION! Please answer the following quesiton in your lab report! Points will be allocated for the answers!
-		 Hidden Question #2/2:
-          Note that Ball_Y_Motion in the above statement may have been changed at the same clock edge
-          that is causing the assignment of Ball_Y_pos.  Will the new value of Ball_Y_Motion be used,
-          or the old?  How will this impact behavior of the ball during a bounce, and how might that 
-          interact with a response to a keypress?  Can you fix it?  Give an answer in your Post-Lab.
-      **************************************************************************************/
-      
-			
+							Ball_Y_Pos <= (Ball_Y_Pos + Ball_Y_Motion);  // Update ball position
+							Ball_X_Pos <= (Ball_X_Pos + Ball_X_Motion);
+				end // THE REGULAR PLAY ENDS HERE 
+				
+		///////////// PORTAL STUFF HERE /////////////////////////////////////////////
+		
+				// PORTAL LOGIC HERE: 
+				if(portal_status == 1'b1) begin
+						 if(keycode == 8'h1A)begin // W pressed
+								Ball_Y_Motion <= -5;
+							end
+							
+						 if ( ((Ball_Y_Pos + Ball_Size) >= Ball_Y_Max - 1) && keycode != 8'h1A)begin  // Ball is at the bottom edge
+							   Ball_Y_Motion <= 0;
+						 end	  //(~ (Ball_Y_Step) + 1'b1);  // 2's complement.
+							  
+						 else if ( (Ball_Y_Pos - Ball_Size) <= 0)  // Ball is at the top edge, BOUNCE!
+							  Ball_Y_Motion <= Ball_Y_Step;
+						 else if(Ball_Y_Motion == 0 && Ball_Y_Pos + Ball_Size <= Ball_Y_Max -1 && keycode != 8'h1A) begin
+							  Ball_Y_Motion <= 5;
+						 end
+				
+							if(Ball_Y_Motion != 0) begin
+								Ball_Y_Motion <= 0;
+							end
+							Ball_Y_Pos <= (Ball_Y_Pos + Ball_Y_Motion);  // Update ball position
+							Ball_X_Pos <= (Ball_X_Pos + Ball_X_Motion);
+							
+							
+				end // THE PORTAL PLAY ENDS HERE
+				
+				
+				
+			end // THE GAME PLAY SHIT ENDS HERE 
 		end  
 
        
     assign BallX = Ball_X_Pos;
-   
     assign BallY = Ball_Y_Pos;
-   
     assign BallS = Ball_Size;
-    
-
+	 
 endmodule
+
+
+
+
+
+
+/*
+
+		else if(portal_status == 1'b1) begin
+				parameter [9:0] Ball_X_Min=0;       // Leftmost point on the X axis
+				parameter [9:0] Ball_X_Max=639;     // Rightmost point on the X axis
+				parameter [9:0] Ball_Y_Min=0;     		// Topmost point on the Y axis
+				parameter [9:0] Ball_Y_Max=480;     // Bottommost point on the Y axis
+				parameter [9:0] Ball_X_Step=1;      // Step size on the X axis
+				parameter [9:0] Ball_Y_Step=5;
+
+			
+			 if(keycode == 8'h1A)begin // W pressed
+					Ball_Y_Motion <= -5;
+				end
+				
+			 if( ((Ball_Y_Pos + Ball_Size) >= Ball_Y_Max - 1) && keycode != 8'h1A)begin  // Ball is at the bottom edge and you are not pressing W
+				Ball_Y_Motion <= 0;
+			 end
+			 else if ( (Ball_Y_Pos - Ball_Size) <= 0)  // Ball is at the top edge, turn it around
+				   Ball_Y_Motion <= Ball_Y_Step;
+				
+			 Ball_Y_Pos <= (Ball_Y_Pos + Ball_Y_Motion);  // Update ball position
+		end
+
+
+
+
+
+*/
+
+
+
+
 
 
 /////////spike////////////////////////////////////////////////////////////////////////////////////
@@ -592,4 +644,78 @@ module  platform ( input Reset, frame_clk,
     assign pfS = pf_Size;
     
 
+endmodule 
+
+
+//////////////////////// Portal ///////////////////////////////////////////
+
+module  portal ( input Reset, frame_clk,
+					input [7:0] keycode,
+					input pause, gameplay,
+					input[64:0] portal_X_Center, portal_Y_Center,
+               output [64:0]  portalX, portalY, portalS);
+    
+    logic [64:0] portal_X_Pos, portal_X_Motion, portal_Y_Pos, portal_Y_Motion, portal_Size;
+	 
+    parameter [9:0] portal_X_Min=0;       // Leftmost point on the X axis
+    parameter [9:0] portal_X_Max=639;     // Rightmost point on the X axis
+    parameter [9:0] portal_Y_Min=0;       // Topmost point on the Y axis
+    parameter [9:0] portal_Y_Max=479;     // Bottommost point on the Y axis
+    parameter [9:0] portal_X_Step=1;      // Step size on the X axis
+    parameter [9:0] portal_Y_Step=1;      // Step size on the Y axis
+
+   assign portal_Size = 28;  // assigns the value 4 as a 10-digit binary number, ie "0000000100"
+	logic rst_flag; 
+	assign rst_flag = Reset; 
+	
+
+    always_ff @ (posedge Reset or posedge frame_clk)
+    begin: Move_portal
+        if (Reset)  // Asynchronous Reset
+        begin
+            portal_Y_Motion <= 10'd0; //portal_Y_Step;
+				portal_X_Motion <= 10'd0; //portal_X_Step;
+				portal_Y_Pos <= portal_Y_Max - portal_Size - 1;
+				portal_X_Pos <= portal_X_Center;
+				//Reset <= 1'b0; 
+       end
+		else if(pause == 1'b1) begin
+				portal_Y_Motion <= 10'd0; 
+				portal_X_Motion <= 10'd0;
+				portal_Y_Pos <= (portal_Y_Pos + portal_Y_Motion);  
+				portal_X_Pos <= (portal_X_Pos + portal_X_Motion);
+		 end
+			
+			
+        else 
+        begin	  if ((portal_Y_Pos + portal_Size) >= portal_Y_Max)  // portal is at the bottom edge, BOUNCE!
+					  portal_Y_Motion <= (~ (portal_Y_Step) + 1'b1);    // 2's complement.
+					  
+				 else if ( (portal_Y_Pos - portal_Size) <= portal_Y_Min)  // portal is at the top edge, BOUNCE!
+					  portal_Y_Motion <= portal_Y_Step;
+
+					  
+				 else
+					begin
+					
+					  portal_Y_Motion <= portal_Y_Motion;  // portal is somewhere in the middle, don't bounce, just keep moving
+					
+				case (gameplay)
+					1'b1 : begin
+								portal_X_Motion <= -3;//A
+								portal_Y_Motion<= 0;
+							  end 
+					default: ;
+			   endcase
+				
+				end
+				 portal_Y_Pos <= (portal_Y_Pos + portal_Y_Motion);
+				 portal_X_Pos <= (portal_X_Pos + portal_X_Motion);	
+		end  
+    end
+       
+    assign portalX = portal_X_Pos;
+    assign portalY = portal_Y_Pos;
+    assign portalS = portal_Size;
+    
 endmodule 
