@@ -7,6 +7,16 @@ State.S_02 0 1 0 1 0
 State.S_P 1 0 0 1 0 
 State.S_04 0 0 0 1 1 
 
+State Machine - |lab62|color_mapper:jason|my_sprite_blue
+Name my_sprite_blue.00001111 
+my_sprite_blue.00000000 0 
+my_sprite_blue.00001111 1 
+
+State Machine - |lab62|color_mapper:jason|my_sprite_red
+Name my_sprite_red.00001111 
+my_sprite_red.00000000 0 
+my_sprite_red.00001111 1 
+
 State Machine - |lab62|color_mapper:jason|backgroundType
 Name backgroundType.0000 backgroundType.0010 backgroundType.0001 
 backgroundType.0000 0 0 0 

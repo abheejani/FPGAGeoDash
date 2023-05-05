@@ -13,7 +13,7 @@
 //-------------------------------------------------------------------------
 
 
-module  ball ( input Reset, frame_clk, portal_status, // currently, Reset is the internal reset for when we collide. May need an FPGA rest down the line. 
+module  ball ( input Reset, frame_clk, portal_status, up_down_status, // currently, Reset is the internal reset for when we collide. May need an FPGA rest down the line. 
 					input [7:0] keycode, 
 					//input logics replace params below
 					input[64:0] Ball_X_Center, Ball_Y_Center,
@@ -21,15 +21,14 @@ module  ball ( input Reset, frame_clk, portal_status, // currently, Reset is the
 					input pause,
                output [64:0]  BallX, BallY, BallS);
 					
-	///////////////////// All this shit is for the regular game //////////////////
+	///////////////////// All this is for the regular game //////////////////
     
     logic [64:0] Ball_X_Pos, Ball_X_Motion, Ball_Y_Pos, Ball_Y_Motion, Ball_Size;
 	 
     parameter [9:0] Ball_X_Min=0;       // Leftmost point on the X axis
     parameter [9:0] Ball_X_Max=639;     // Rightmost point on the X axis
-    logic [9:0] Ball_Y_Min=380;     // Topmost point on the Y axis
-    logic [9:0] Ball_Y_Max;        //480;     // Bottommost point on the Y axis                    // HEADASSSSSSSARY HERE!!!!!!
-	 assign Ball_Y_Max = ball_floor;
+    logic [9:0] Ball_Y_Min;           // Topmost point on the Y axis
+    logic [9:0] Ball_Y_Max;           // Bottommost point on the Y axis                    // HEADASSSSSSSARY HERE!!!!!!
     parameter [9:0] Ball_X_Step=1;      // Step size on the X axis
     parameter [9:0] Ball_Y_Step=5;      // Step size on the Y axis
 
@@ -38,21 +37,25 @@ module  ball ( input Reset, frame_clk, portal_status, // currently, Reset is the
     always_ff @ (posedge Reset or posedge frame_clk)
     begin: Move_Ball
         if (Reset)  // Asynchronous Reset
-        begin 
+        begin
+				Ball_Y_Max <= ball_floor;
+				Ball_Y_Min <= 0;
             Ball_Y_Motion <= 10'd0; //Ball_Y_Step;
 				Ball_X_Motion <= 10'd0; //Ball_X_Step;
 				Ball_Y_Pos <= Ball_Y_Max - Ball_Size; //Ball_Y_Center;
 				Ball_X_Pos <= Ball_X_Center;
         end
-		else if(pause) begin
+		else if(pause) begin          
+				Ball_Y_Max <= ball_floor;
 				Ball_Y_Motion <= 10'd0; 
 				Ball_X_Motion <= 10'd0;
 				Ball_Y_Pos <= (Ball_Y_Pos + Ball_Y_Motion);  
 				Ball_X_Pos <= (Ball_X_Pos + Ball_X_Motion);
 		 end
 			
-        else begin // GAMEPLAY STATES STARTING HERE
-				if(portal_status == 1'b0) begin
+       else begin // GENERAL GAMEPLAY STATES STARTING HERE
+				if(portal_status == 1'b0 && up_down_status == 1'b0) begin          
+						 Ball_Y_Max <= ball_floor;
 						 if ( (Ball_Y_Pos + Ball_Size) >= Ball_Y_Max - 1)begin  // Ball is at the bottom edge
 							if(keycode == 8'h1A)begin // W pressed
 								Ball_Y_Min <= Ball_Y_Pos - 100; 
@@ -71,12 +74,14 @@ module  ball ( input Reset, frame_clk, portal_status, // currently, Reset is the
 							Ball_X_Pos <= (Ball_X_Pos + Ball_X_Motion);
 				end // THE REGULAR PLAY ENDS HERE 
 				
+				
 		///////////// PORTAL STUFF HERE /////////////////////////////////////////////
 		
 				// PORTAL LOGIC HERE: 
-				if(portal_status == 1'b1) begin
+				if(portal_status == 1'b1 && up_down_status == 1'b0) begin         
+				Ball_Y_Max <= ball_floor;
 						 if(keycode == 8'h1A)begin // W pressed
-								Ball_Y_Motion <= -5;
+								Ball_Y_Motion <= -8;
 							end
 							
 						 if ( ((Ball_Y_Pos + Ball_Size) >= Ball_Y_Max - 1) && keycode != 8'h1A)begin  // Ball is at the bottom edge
@@ -86,7 +91,7 @@ module  ball ( input Reset, frame_clk, portal_status, // currently, Reset is the
 						 else if ( (Ball_Y_Pos - Ball_Size) <= 0)  // Ball is at the top edge, BOUNCE!
 							  Ball_Y_Motion <= Ball_Y_Step;
 						 else if(Ball_Y_Motion == 0 && Ball_Y_Pos + Ball_Size <= Ball_Y_Max -1 && keycode != 8'h1A) begin
-							  Ball_Y_Motion <= 5;
+							  Ball_Y_Motion <= 8;
 						 end
 				
 							if(Ball_Y_Motion != 0) begin
@@ -100,7 +105,29 @@ module  ball ( input Reset, frame_clk, portal_status, // currently, Reset is the
 				
 				
 				
-			end // THE GAME PLAY SHIT ENDS HERE 
+		 ///////////// UPSIDE DOWN LEVEL STUFF HERE /////////////////////////////////////////////		
+			   if(portal_status == 1'b0 && up_down_status == 1'b1) begin          
+				Ball_Y_Min <= 0; // ball_floor;
+						 if ( $signed(Ball_Y_Pos) <= $signed(Ball_Y_Min + 1))begin  // Ball is at the top edge
+							if(keycode == 8'h1A)begin // W pressed
+								Ball_Y_Max <= Ball_Y_Pos + Ball_Size + 100; 
+								Ball_Y_Motion <= 5;
+							end
+							else Ball_Y_Motion <= 0;
+						 end
+						 else if ( (Ball_Y_Pos + Ball_Size) >= Ball_Y_Max)  // Ball is at the bottom edge, BOUNCE!
+							  Ball_Y_Motion <= -Ball_Y_Step;
+						else if(Ball_Y_Motion == 0 && Ball_Y_Pos >= Ball_Y_Min -1) begin
+							Ball_Y_Motion <= -5;
+						end
+				
+							Ball_Y_Pos <= (Ball_Y_Pos + Ball_Y_Motion);  // Update ball position
+							Ball_X_Pos <= (Ball_X_Pos + Ball_X_Motion);
+				end   // THE UPSIDE DOWN ENDS HERE 
+				
+				
+				
+			end // THE GAME PLAY ENDS HERE 
 		end  
 
        

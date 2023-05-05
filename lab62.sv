@@ -61,15 +61,6 @@ module lab62 (
 logic Reset_h, vssig, blank, sync, VGA_Clk;
 logic rst; 
 
-//logic [9:0] randtest1, randtest2, randtest3;
-
-//assign Reset_h = rst;
-
- 
-//while(rst == 1'b1) begin
-//	rst = 1'b0; 
-//end
-
 
 //=======================================================
 //  REG/WIRE declarations
@@ -205,10 +196,10 @@ vga_controller abhee(.Clk(MAX10_CLK1_50), .Reset(Reset_h), .hs(VGA_HS), .vs(VGA_
 .blank(blank), .sync(sync), .DrawX(drawxsig), .DrawY(drawysig));
 
 ///changing reset to Reset_h
-ball azim(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode), //.jumpmotion(jumpmotionsig), 
-//.(jump_in), .jump_ready(jump_ready),
-.BallX(ballxsig), .BallY(ballysig), .BallS(ballsizesig), .Ball_X_Center(100), .Ball_Y_Center(400), .ball_floor(floor), .pause(pausesig), .portal_status(portal)
-//.jump_motion(jump_out)
+ball azim(.Reset(int_reset||Reset_h), .frame_clk(VGA_VS), .keycode(keycode),
+.BallX(ballxsig), .BallY(ballysig), .BallS(ballsizesig), .Ball_X_Center(100), 
+.Ball_Y_Center(400), .ball_floor(floor), .pause(pausesig), .portal_status(portal), 
+.up_down_status(up_down)
 );
 
 
@@ -239,25 +230,28 @@ color_mapper jason(.spriteX(ballxsig), .spriteY(ballysig), .DrawX(drawxsig),
  .bg3X(bg3xsig), .bg3Y(bg3ysig), .bg3_size(bg3size), 
  .pfX(pfxsig), .pfY(pfysig), .pf_size(pfsizesig), 
  .portalX(portalxsig), .portalY(portalysig), .portal_size(portalsizesig),
- .Red(Red), .Green(Green), .Blue(Blue), .vga_clk(VGA_Clk), .blank(blank), .hit(hit), .finish(finish), .cur_floor(floor), .portal(portal), .keycode(keycode), .screen(screensig), .deaths(count), .inc_deaths(inc_deaths) //.show_title(showtitle) 
- /*.randtest1, .randtest2, .randtest3*/);
+ .Red(Red), .Green(Green), .Blue(Blue), .vga_clk(VGA_Clk), .blank(blank), 
+ .hit(hit), .finish(finish), .cur_floor(floor), .portal(portal), .up_down(up_down),
+ .keycode(keycode), .screen(screensig), .deaths(count), .inc_deaths(inc_deaths)
+ );
 	
 logic hit; 
 logic finish;
 logic int_reset; 
 logic showtitle;
 logic portal;
+logic up_down;
 
 
- ISDU Adnan( .Clk(VGA_VS), .hit(hit), .finish(finish), .internal_reset(int_reset), .keycode(keycode), .screen(screensig), .pause(pausesig), .gameplay(gameplaysig), .show_title(showtitle), .inc_deaths(inc_deaths)
-// .jumpmotion(jumpmotionsig), .keycode(keycode)
+ ISDU Adnan(.Clk(VGA_VS), .hit(hit), .finish(finish), 
+ .internal_reset(int_reset), .keycode(keycode), .screen(screensig), 
+ .pause(pausesig), .gameplay(gameplaysig), .show_title(showtitle), .inc_deaths(inc_deaths)
  );
+ 
+ 
 logic screensig;
 logic pausesig; 
 logic gameplaysig; 
-logic inc_deaths; 
-
- //logic jump_in, jump_ready; 
-// logic[9:0] jump_out; 
+logic inc_deaths;  
 
 endmodule
